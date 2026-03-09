@@ -1,5 +1,89 @@
 const songs = [
   {
+    title: "Island In The Sun",
+    artist: "Weezer",
+    members: {
+      vox: ["Michaela M.", "Chris H."],
+      guitar: ["Alison B.", "Chris H.", "Maria W."],
+      bass: ["Coleman T."],
+      drums: ["Ilia V."],
+      keys: [],
+      aux_perc: [],
+    },
+  },
+  {
+    title: "A-Punk",
+    artist: "Vampire Weekend",
+    members: {
+      vox: ["Seth N.", "Alison B."],
+      guitar: ["Artem S.", "Christian K."],
+      bass: ["Tom K."],
+      drums: ["Bex L."],
+      keys: ["David K."],
+      aux_perc: [],
+    },
+  },
+  {
+    title: "Icky Thump",
+    artist: "The White Stripes",
+    members: {
+      vox: ["Jocelyn L."],
+      guitar: ["John K."],
+      bass: ["Hex K."],
+      drums: ["Bex L."],
+      keys: ["David K."],
+      aux_perc: [],
+    },
+  },
+  {
+    title: "Last Nite",
+    artist: "The Strokes",
+    members: {
+      vox: ["David K."],
+      guitar: ["Dimitry K.", "Artem S."],
+      bass: ["Trevor W."],
+      drums: ["John K."],
+      keys: [],
+      aux_perc: [],
+    },
+  },
+  {
+    title: "The Pretender",
+    artist: "Foo Fighters",
+    members: {
+      vox: ["Jocelyn L.", "Chris H.", "Jen B."],
+      guitar: ["Christian K.", "Dimitry K.", "Chris H."],
+      bass: ["Trevor W."],
+      drums: ["Jim H."],
+      keys: [],
+      aux_perc: [],
+    },
+  },
+  {
+    title: "That's What You Get",
+    artist: "Paramore",
+    members: {
+      vox: ["Alison B.", "Michaela M.", "Jen B."],
+      guitar: ["John K.", "Artem S."],
+      bass: ["Hex K."],
+      drums: ["Jim H."],
+      keys: [],
+      aux_perc: [],
+    },
+  },
+  {
+    title: "The Middle",
+    artist: "Jimmy Eat World",
+    members: {
+      vox: ["Michaela M.", "Seth N."],
+      guitar: ["Christian K.", "Seth N.", "Maria W."],
+      bass: ["Coleman T."],
+      drums: ["Ilia V."],
+      keys: [],
+      aux_perc: ["Bex L."],
+    },
+  },
+  {
     title: "Crazy",
     artist: "Gnarls Barkley",
     members: {
