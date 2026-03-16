@@ -50,6 +50,7 @@ function app() {
       const raw = this._read("musicians", []);
       if (raw.length && typeof raw[0] === "string") {
         this.musicians = raw.map(name => ({ name, weight: 1 }));
+        this._saveMusicians();
       } else {
         this.musicians = raw;
       }
