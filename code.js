@@ -172,11 +172,14 @@ const songs = [
 // ---------------------------------------------------------------------------
 // Traveling Salesman — Optimal Setlist
 //
-// "Distance" between two songs = number of musicians shared between them.
-// While one band plays, the next rehearses in another room, so shared
-// musicians create conflicts. We minimise total overlap across the circular
-// setlist (last song wraps back to first).
+// "Distance" between two songs = weighted overlap of musicians shared between
+// them. Each musician has a weight (default 1); higher-weight musicians cost
+// more when they appear in consecutive songs.
 // ---------------------------------------------------------------------------
+
+// Musician weights — set per-musician cost for overlap calculations
+const MUSICIAN_WEIGHTS = {};
+// e.g. MUSICIAN_WEIGHTS["Chris H."] = 3;
 
 function getMusicians(song) {
   const set = new Set();
@@ -186,14 +189,14 @@ function getMusicians(song) {
   return set;
 }
 
-function overlap(songA, songB) {
+function overlapCost(songA, songB) {
   const a = getMusicians(songA);
   const b = getMusicians(songB);
-  let count = 0;
+  let cost = 0;
   for (const m of a) {
-    if (b.has(m)) count++;
+    if (b.has(m)) cost += (MUSICIAN_WEIGHTS[m] || 1);
   }
-  return count;
+  return cost;
 }
 
 function buildDistanceMatrix(songs) {
@@ -201,7 +204,7 @@ function buildDistanceMatrix(songs) {
   const dist = Array.from({ length: n }, () => new Array(n).fill(0));
   for (let i = 0; i < n; i++) {
     for (let j = i + 1; j < n; j++) {
-      const d = overlap(songs[i], songs[j]);
+      const d = overlapCost(songs[i], songs[j]);
       dist[i][j] = d;
       dist[j][i] = d;
     }
@@ -266,14 +269,19 @@ function heldKarp(dist) {
   return { cost: bestCost, path };
 }
 
-function sharedMusicians(songA, songB) {
+function sharedMusiciansInfo(songA, songB) {
   const a = getMusicians(songA);
   const b = getMusicians(songB);
   const shared = [];
+  let cost = 0;
   for (const m of a) {
-    if (b.has(m)) shared.push(m);
+    if (b.has(m)) {
+      const w = MUSICIAN_WEIGHTS[m] || 1;
+      shared.push({ name: m, weight: w });
+      cost += w;
+    }
   }
-  return shared;
+  return { shared, cost };
 }
 
 // ---------------------------------------------------------------------------
@@ -283,20 +291,19 @@ function sharedMusicians(songA, songB) {
 const dist = buildDistanceMatrix(songs);
 const { cost, path } = heldKarp(dist);
 
-console.log("=== OPTIMAL SETLIST (min musician overlap) ===\n");
+console.log("=== OPTIMAL SETLIST (min weighted musician overlap) ===\n");
 
 for (let i = 0; i < path.length; i++) {
   const song = songs[path[i]];
   const nextSong = songs[path[(i + 1) % path.length]];
-  const shared = sharedMusicians(song, nextSong);
+  const { shared, cost: transCost } = sharedMusiciansInfo(song, nextSong);
 
   console.log(`  ${i + 1}. ${song.title} — ${song.artist}`);
   console.log(`     Band: ${[...getMusicians(song)].join(", ")}`);
 
   if (shared.length) {
-    console.log(
-      `     ⚠  Overlap with next song (${shared.length}): ${shared.join(", ")}`
-    );
+    const names = shared.map(s => s.weight > 1 ? `${s.name} ×${s.weight}` : s.name).join(", ");
+    console.log(`     ⚠  Overlap with next (cost ${transCost}): ${names}`);
   } else {
     console.log(`     ✓  No overlap with next song`);
   }
@@ -304,4 +311,4 @@ for (let i = 0; i < path.length; i++) {
 }
 
 console.log(`  ↩  Loop back to: ${songs[path[0]].title}\n`);
-console.log(`Total musician-overlaps across setlist: ${cost}`);
+console.log(`Total weighted overlap cost across setlist: ${cost}`);

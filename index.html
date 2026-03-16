@@ -4,341 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rock Setlist Optimizer</title>
-<style>
-  :root {
-    --bg: #121212;
-    --surface: #1e1e1e;
-    --surface2: #2a2a2a;
-    --border: #3a3a3a;
-    --text: #e0e0e0;
-    --text-dim: #888;
-    --accent: #e84855;
-    --accent2: #f9a03f;
-    --green: #4caf50;
-    --red: #e84855;
-    --blue: #42a5f5;
-    --radius: 8px;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
-
-  header {
-    background: var(--surface);
-    border-bottom: 2px solid var(--accent);
-    padding: 16px 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  header h1 {
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-  }
-
-  header h1 span { color: var(--accent); }
-
-  .tabs {
-    display: flex;
-    gap: 0;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-  }
-
-  .tab {
-    padding: 12px 24px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-dim);
-    border-bottom: 3px solid transparent;
-    transition: all 0.2s;
-    user-select: none;
-  }
-
-  .tab:hover { color: var(--text); }
-  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-  .container { max-width: 960px; margin: 0 auto; padding: 24px; }
-
-  .panel { display: none; }
-  .panel.active { display: block; }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 12px;
-  }
-
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-
-  .card-title { font-size: 16px; font-weight: 600; }
-  .card-subtitle { font-size: 13px; color: var(--text-dim); }
-
-  .add-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-
-  input, select {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    padding: 8px 12px;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  input:focus, select:focus { border-color: var(--accent); }
-  input::placeholder { color: var(--text-dim); }
-
-  button {
-    border: none;
-    border-radius: var(--radius);
-    padding: 8px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .btn-primary { background: var(--accent); color: white; }
-  .btn-primary:hover { filter: brightness(1.15); }
-  .btn-small { padding: 4px 10px; font-size: 12px; }
-  .btn-danger { background: transparent; color: var(--red); border: 1px solid var(--red); }
-  .btn-danger:hover { background: var(--red); color: white; }
-  .btn-ghost { background: transparent; color: var(--text-dim); }
-  .btn-ghost:hover { color: var(--text); background: var(--surface2); }
-  .btn-calculate {
-    background: var(--green);
-    color: white;
-    font-size: 16px;
-    padding: 12px 32px;
-    width: 100%;
-    margin-top: 16px;
-  }
-  .btn-calculate:hover { filter: brightness(1.15); }
-
-  .musician-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .musician-chip {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 6px 12px;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .chip-remove {
-    cursor: pointer;
-    color: var(--text-dim);
-    font-size: 16px;
-    line-height: 1;
-  }
-
-  .chip-remove:hover { color: var(--red); }
-
-  .role-section { margin-bottom: 12px; }
-  .role-label {
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-dim);
-    margin-bottom: 6px;
-  }
-
-  .role-members {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    align-items: center;
-  }
-
-  .member-tag {
-    background: var(--accent);
-    color: white;
-    border-radius: 4px;
-    padding: 3px 8px;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .member-tag .remove {
-    cursor: pointer;
-    opacity: 0.7;
-    font-size: 14px;
-  }
-  .member-tag .remove:hover { opacity: 1; }
-
-  .role-add-select {
-    padding: 3px 8px;
-    font-size: 12px;
-    border-radius: 4px;
-  }
-
-  .song-form {
-    background: var(--surface);
-    border: 1px solid var(--accent);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 20px;
-  }
-
-  .form-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-
-  .form-row input { flex: 1; }
-
-  .setlist-song {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-  }
-
-  .setlist-song input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--accent);
-    cursor: pointer;
-  }
-
-  .setlist-song-info { flex: 1; }
-  .setlist-song-title { font-weight: 600; }
-  .setlist-song-artist { font-size: 13px; color: var(--text-dim); }
-  .setlist-song-members { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
-
-  .result-card {
-    background: var(--surface);
-    border-left: 4px solid var(--green);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 8px;
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-  }
-
-  .result-number {
-    background: var(--green);
-    color: white;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 14px;
-    flex-shrink: 0;
-  }
-
-  .result-info { flex: 1; }
-  .result-title { font-weight: 600; font-size: 15px; }
-  .result-artist { font-size: 13px; color: var(--text-dim); }
-  .result-band { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
-
-  .result-overlap {
-    font-size: 12px;
-    margin-top: 6px;
-    padding: 4px 8px;
-    border-radius: 4px;
-  }
-
-  .overlap-warn { background: rgba(232, 72, 85, 0.15); color: var(--red); }
-  .overlap-ok { background: rgba(76, 175, 80, 0.15); color: var(--green); }
-
-  .result-summary {
-    background: var(--surface);
-    border: 2px solid var(--accent);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-top: 16px;
-    text-align: center;
-  }
-
-  .result-summary .total { font-size: 36px; font-weight: 700; color: var(--accent); }
-  .result-summary .label { font-size: 14px; color: var(--text-dim); margin-top: 4px; }
-
-  .loop-back {
-    text-align: center;
-    color: var(--text-dim);
-    font-size: 13px;
-    padding: 8px;
-  }
-
-  .empty-state {
-    text-align: center;
-    color: var(--text-dim);
-    padding: 48px 24px;
-    font-size: 15px;
-  }
-
-  .section-title {
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-dim);
-    margin-bottom: 12px;
-  }
-
-  .confirm-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-  }
-
-  .confirm-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px;
-    max-width: 400px;
-    width: 90%;
-  }
-
-  .confirm-box p { margin-bottom: 16px; line-height: 1.5; }
-  .confirm-box .affected { color: var(--accent); font-size: 13px; margin-bottom: 16px; }
-
-  .confirm-actions { display: flex; gap: 8px; justify-content: flex-end; }
-</style>
+<link rel="stylesheet" href="style.css">
+<script defer src="alpine.min.js"></script>
+<script src="app.js"></script>
 </head>
 <body>
 
@@ -346,548 +14,197 @@
   <h1><span>///</span> Rock Setlist Optimizer</h1>
 </header>
 
-<div class="tabs">
-  <div class="tab active" data-tab="musicians">Musicians</div>
-  <div class="tab" data-tab="songs">Songs</div>
-  <div class="tab" data-tab="setlist">Setlist</div>
-</div>
+<div x-data="app()" x-cloak>
 
-<div class="container">
-
-  <!-- MUSICIANS PANEL -->
-  <div id="musicians" class="panel active">
-    <div class="add-row">
-      <input type="text" id="new-musician" placeholder="Musician name (e.g. Jim H.)" style="flex:1">
-      <button class="btn-primary" id="add-musician-btn">Add musician</button>
-    </div>
-    <div class="section-title">Roster (<span id="musician-count">0</span>)</div>
-    <div class="musician-list" id="musician-list"></div>
+  <div class="tabs">
+    <div class="tab" :class="tab === 'musicians' && 'active'" @click="tab = 'musicians'">Musicians</div>
+    <div class="tab" :class="tab === 'songs' && 'active'" @click="tab = 'songs'">Songs</div>
+    <div class="tab" :class="tab === 'setlist' && 'active'" @click="tab = 'setlist'">Setlist</div>
   </div>
 
-  <!-- SONGS PANEL -->
-  <div id="songs" class="panel">
-    <button class="btn-primary" id="show-add-song" style="margin-bottom:16px">+ Add song</button>
-    <div id="song-form-area"></div>
-    <div id="song-list"></div>
-  </div>
+  <div class="container">
 
-  <!-- SETLIST PANEL -->
-  <div id="setlist" class="panel">
-    <div class="section-title">Select songs for this rehearsal set</div>
-    <div id="setlist-songs"></div>
-    <button class="btn-calculate" id="calculate-btn">Calculate optimal order</button>
-    <div id="results-area" style="margin-top:24px"></div>
-  </div>
-
-</div>
-
-<script>
-const ROLES = ["vox", "guitar", "bass", "drums", "keys", "aux_perc"];
-const ROLE_LABELS = {
-  vox: "Vocals", guitar: "Guitar", bass: "Bass",
-  drums: "Drums", keys: "Keys", aux_perc: "Aux / Perc"
-};
-
-const DEFAULT_SONGS = [
-  { title:"Island In The Sun", artist:"Weezer", members:{ vox:["Michaela M.","Chris H."], guitar:["Alison B.","Chris H.","Maria W."], bass:["Coleman T."], drums:["Ilia V."], keys:[], aux_perc:[] }},
-  { title:"A-Punk", artist:"Vampire Weekend", members:{ vox:["Seth N.","Alison B."], guitar:["Artem S.","Christian K."], bass:["Tom K."], drums:["Bex L."], keys:["David K."], aux_perc:[] }},
-  { title:"Icky Thump", artist:"The White Stripes", members:{ vox:["Jocelyn L."], guitar:["John K."], bass:["Hex K."], drums:["Bex L."], keys:["David K."], aux_perc:[] }},
-  { title:"Last Nite", artist:"The Strokes", members:{ vox:["David K."], guitar:["Dimitry K.","Artem S."], bass:["Trevor W."], drums:["John K."], keys:[], aux_perc:[] }},
-  { title:"The Pretender", artist:"Foo Fighters", members:{ vox:["Jocelyn L.","Chris H.","Jen B."], guitar:["Christian K.","Dimitry K.","Chris H."], bass:["Trevor W."], drums:["Jim H."], keys:[], aux_perc:[] }},
-  { title:"That's What You Get", artist:"Paramore", members:{ vox:["Alison B.","Michaela M.","Jen B."], guitar:["John K.","Artem S."], bass:["Hex K."], drums:["Jim H."], keys:[], aux_perc:[] }},
-  { title:"The Middle", artist:"Jimmy Eat World", members:{ vox:["Michaela M.","Seth N."], guitar:["Christian K.","Seth N.","Maria W."], bass:["Coleman T."], drums:["Ilia V."], keys:[], aux_perc:["Bex L."] }},
-  { title:"Crazy", artist:"Gnarls Barkley", members:{ vox:["Michaela M."], guitar:["Chris H.","Alison B.","Maria W."], bass:["Trevor W."], drums:["Ilia V."], keys:["David K."], aux_perc:[] }},
-  { title:"Joker And The Thief", artist:"Wolfmother", members:{ vox:["Jen B.","Michaela M.","Jocelyn L."], guitar:["Dimitry K.","Christian K."], bass:["Hex K."], drums:["Bex L."], keys:["Jim H."], aux_perc:[] }},
-  { title:"Mr. Brightside", artist:"The Killers", members:{ vox:["David K."], guitar:["Artem S.","Alison B."], bass:["Coleman T."], drums:["Jim H."], keys:["John K."], aux_perc:[] }},
-  { title:"Snow (Hey Oh)", artist:"Red Hot Chili Peppers", members:{ vox:["Chris H.","Jen B.","Michaela M."], guitar:["Christian K.","Chris H."], bass:["Trevor W."], drums:["Bex L."], keys:["Jim H."], aux_perc:[] }},
-  { title:"Take Me Out", artist:"Franz Ferdinand", members:{ vox:["Seth N.","Hex K."], guitar:["John K.","Dimitry K."], bass:["Tom K."], drums:["Ilia V."], keys:[], aux_perc:[] }},
-  { title:"Are You Gonna Be My Girl", artist:"Jet", members:{ vox:["Jocelyn L."], guitar:["Artem S.","Alison B."], bass:["Coleman T."], drums:["Jim H."], keys:[], aux_perc:["Ilia V."] }},
-  { title:"Uprising", artist:"Muse", members:{ vox:["Jen B.","Hex K."], guitar:["Christian K.","Seth N.","Maria W."], bass:["Tom K."], drums:["Bex L."], keys:["David K."], aux_perc:[] }}
-];
-
-// ── localStorage DB ──────────────────────────────────────────────────────
-
-function load(key, fallback) {
-  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
-  catch { return fallback; }
-}
-
-function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
-
-function initDB() {
-  if (localStorage.getItem("rock_init")) return;
-  const allMusicians = new Set();
-  for (const s of DEFAULT_SONGS)
-    for (const arr of Object.values(s.members))
-      for (const m of arr) allMusicians.add(m);
-  save("musicians", [...allMusicians].sort());
-  save("songs", DEFAULT_SONGS);
-  localStorage.setItem("rock_init", "1");
-}
-
-function getMusiciansDB() { return load("musicians", []); }
-function getSongsDB() { return load("songs", []); }
-function saveMusicians(m) { save("musicians", m); }
-function saveSongs(s) { save("songs", s); }
-
-// ── Tab switching ────────────────────────────────────────────────────────
-
-document.querySelectorAll(".tab").forEach(t => {
-  t.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
-    document.querySelectorAll(".panel").forEach(x => x.classList.remove("active"));
-    t.classList.add("active");
-    document.getElementById(t.dataset.tab).classList.add("active");
-    render();
-  });
-});
-
-// ── Musicians panel ──────────────────────────────────────────────────────
-
-function renderMusicians() {
-  const musicians = getMusiciansDB();
-  document.getElementById("musician-count").textContent = musicians.length;
-  const list = document.getElementById("musician-list");
-  if (!musicians.length) {
-    list.innerHTML = '<div class="empty-state">No musicians yet. Add one above.</div>';
-    return;
-  }
-  list.innerHTML = musicians.map(m => `
-    <div class="musician-chip">
-      ${esc(m)}
-      <span class="chip-remove" data-name="${esc(m)}" title="Remove">&times;</span>
-    </div>
-  `).join("");
-
-  list.querySelectorAll(".chip-remove").forEach(btn => {
-    btn.addEventListener("click", () => confirmRemoveMusician(btn.dataset.name));
-  });
-}
-
-document.getElementById("add-musician-btn").addEventListener("click", addMusician);
-document.getElementById("new-musician").addEventListener("keydown", e => {
-  if (e.key === "Enter") addMusician();
-});
-
-function addMusician() {
-  const input = document.getElementById("new-musician");
-  const name = input.value.trim();
-  if (!name) return;
-  const musicians = getMusiciansDB();
-  if (musicians.includes(name)) { input.select(); return; }
-  musicians.push(name);
-  musicians.sort();
-  saveMusicians(musicians);
-  input.value = "";
-  renderMusicians();
-}
-
-function confirmRemoveMusician(name) {
-  const songs = getSongsDB();
-  const affected = songs.filter(s =>
-    Object.values(s.members).some(arr => arr.includes(name))
-  );
-
-  const overlay = document.createElement("div");
-  overlay.className = "confirm-overlay";
-  overlay.innerHTML = `
-    <div class="confirm-box">
-      <p>Remove <strong>${esc(name)}</strong> from the program?</p>
-      ${affected.length ? `<div class="affected">Will be removed from ${affected.length} song(s): ${affected.map(s => esc(s.title)).join(", ")}</div>` : ""}
-      <div class="confirm-actions">
-        <button class="btn-ghost cancel-btn">Cancel</button>
-        <button class="btn-primary btn-danger confirm-btn">Remove</button>
+    <!-- MUSICIANS PANEL -->
+    <div x-show="tab === 'musicians'">
+      <div class="add-row">
+        <input type="text" x-model="newMusician" placeholder="Musician name (e.g. Jim H.)" style="flex:1"
+               @keydown.enter="addMusician()">
+        <button class="btn-primary" @click="addMusician()">Add musician</button>
       </div>
+      <div class="section-title">Roster (<span x-text="musicians.length"></span>)</div>
+      <div class="empty-state" x-show="!musicians.length">No musicians yet. Add one above.</div>
+      <table class="roster-table" x-show="musicians.length">
+        <thead><tr><th>Name</th><th class="col-weight">Weight</th><th></th></tr></thead>
+        <tbody>
+          <template x-for="m in musicians" :key="m.name">
+            <tr>
+              <td x-text="m.name"></td>
+              <td class="col-weight">
+                <div class="weight-stepper">
+                  <button class="weight-btn" @click="updateWeight(m.name, m.weight - 1)" :disabled="m.weight <= 1">&minus;</button>
+                  <input type="number" class="weight-input" :value="m.weight" min="1" max="99"
+                         @change="updateWeight(m.name, $event.target.value)">
+                  <button class="weight-btn" @click="updateWeight(m.name, m.weight + 1)" :disabled="m.weight >= 99">+</button>
+                </div>
+              </td>
+              <td><button class="row-remove" @click="removeMusician(m.name)" title="Remove">&times;</button></td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
     </div>
-  `;
-  document.body.appendChild(overlay);
 
-  overlay.querySelector(".cancel-btn").addEventListener("click", () => overlay.remove());
-  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.remove(); });
-  overlay.querySelector(".confirm-btn").addEventListener("click", () => {
-    removeMusician(name);
-    overlay.remove();
-  });
-}
+    <!-- SONGS PANEL -->
+    <div x-show="tab === 'songs'">
+      <button class="btn-primary" style="margin-bottom:16px" @click="showSongForm(-1)" x-show="!songForm">+ Add song</button>
 
-function removeMusician(name) {
-  let musicians = getMusiciansDB();
-  musicians = musicians.filter(m => m !== name);
-  saveMusicians(musicians);
-
-  const songs = getSongsDB();
-  for (const s of songs) {
-    for (const role of ROLES) {
-      s.members[role] = (s.members[role] || []).filter(m => m !== name);
-    }
-  }
-  saveSongs(songs);
-  render();
-}
-
-// ── Songs panel ──────────────────────────────────────────────────────────
-
-let editingIndex = -1;
-
-function renderSongs() {
-  const songs = getSongsDB();
-  const list = document.getElementById("song-list");
-  if (!songs.length) {
-    list.innerHTML = '<div class="empty-state">No songs yet. Add one above.</div>';
-    return;
-  }
-  list.innerHTML = songs.map((s, i) => `
-    <div class="card">
-      <div class="card-header">
-        <div>
-          <div class="card-title">${esc(s.title)}</div>
-          <div class="card-subtitle">${esc(s.artist)}</div>
-        </div>
-        <div style="display:flex;gap:6px">
-          <button class="btn-small btn-ghost edit-song-btn" data-idx="${i}">Edit</button>
-          <button class="btn-small btn-danger delete-song-btn" data-idx="${i}">Delete</button>
-        </div>
-      </div>
-      ${ROLES.map(role => {
-        const members = s.members[role] || [];
-        if (!members.length) return "";
-        return `<div class="role-section">
-          <div class="role-label">${ROLE_LABELS[role]}</div>
-          <div class="role-members">${members.map(m => `<span class="member-tag">${esc(m)}</span>`).join("")}</div>
-        </div>`;
-      }).join("")}
-    </div>
-  `).join("");
-
-  list.querySelectorAll(".edit-song-btn").forEach(btn => {
-    btn.addEventListener("click", () => showSongForm(parseInt(btn.dataset.idx)));
-  });
-  list.querySelectorAll(".delete-song-btn").forEach(btn => {
-    btn.addEventListener("click", () => deleteSong(parseInt(btn.dataset.idx)));
-  });
-}
-
-document.getElementById("show-add-song").addEventListener("click", () => showSongForm(-1));
-
-function showSongForm(idx) {
-  editingIndex = idx;
-  const songs = getSongsDB();
-  const song = idx >= 0 ? songs[idx] : null;
-  const musicians = getMusiciansDB();
-  const area = document.getElementById("song-form-area");
-
-  area.innerHTML = `
-    <div class="song-form">
-      <div class="form-row">
-        <input type="text" id="song-title" placeholder="Song title" value="${song ? esc(song.title) : ""}">
-        <input type="text" id="song-artist" placeholder="Artist" value="${song ? esc(song.artist) : ""}">
-      </div>
-      ${ROLES.map(role => {
-        const assigned = song ? (song.members[role] || []) : [];
-        const available = musicians.filter(m => !assigned.includes(m));
-        return `<div class="role-section">
-          <div class="role-label">${ROLE_LABELS[role]}</div>
-          <div class="role-members" id="role-${role}">
-            ${assigned.map(m => `<span class="member-tag">${esc(m)}<span class="remove" data-role="${role}" data-name="${esc(m)}">&times;</span></span>`).join("")}
-            ${available.length ? `<select class="role-add-select" data-role="${role}">
-              <option value="">+ add</option>
-              ${available.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join("")}
-            </select>` : ""}
+      <template x-if="songForm && editingIndex === -1">
+        <div class="song-form">
+          <div class="form-row">
+            <input type="text" placeholder="Song title" x-model="songForm.title">
+            <input type="text" placeholder="Artist" x-model="songForm.artist">
           </div>
-        </div>`;
-      }).join("")}
-      <div style="display:flex;gap:8px;margin-top:12px">
-        <button class="btn-primary" id="save-song-btn">${idx >= 0 ? "Update" : "Add"} song</button>
-        <button class="btn-ghost" id="cancel-song-btn">Cancel</button>
+          <template x-for="role in ROLES" :key="role">
+            <div class="role-section">
+              <div class="role-label" x-text="ROLE_LABELS[role]"></div>
+              <div class="role-members">
+                <template x-for="m in songForm.members[role]" :key="m">
+                  <span class="member-tag">
+                    <span x-text="m"></span>
+                    <span class="remove" @click="removeMemberFromRole(role, m)">&times;</span>
+                  </span>
+                </template>
+                <select class="role-add-select" x-show="availableForRole(role).length"
+                        @change="addMemberToRole(role, $event.target.value); $event.target.value = ''">
+                  <option value="">+ add</option>
+                  <template x-for="m in availableForRole(role)" :key="m.name">
+                    <option :value="m.name" x-text="m.name"></option>
+                  </template>
+                </select>
+              </div>
+            </div>
+          </template>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn-primary" @click="saveSong()">Add song</button>
+            <button class="btn-ghost" @click="cancelSongForm()">Cancel</button>
+          </div>
+        </div>
+      </template>
+
+      <div class="empty-state" x-show="!songs.length">No songs yet. Add one above.</div>
+      <template x-for="(song, i) in songs" :key="i">
+        <div>
+          <template x-if="songForm && editingIndex === i">
+            <div class="song-form">
+              <div class="form-row">
+                <input type="text" placeholder="Song title" x-model="songForm.title">
+                <input type="text" placeholder="Artist" x-model="songForm.artist">
+              </div>
+              <template x-for="role in ROLES" :key="role">
+                <div class="role-section">
+                  <div class="role-label" x-text="ROLE_LABELS[role]"></div>
+                  <div class="role-members">
+                    <template x-for="m in songForm.members[role]" :key="m">
+                      <span class="member-tag">
+                        <span x-text="m"></span>
+                        <span class="remove" @click="removeMemberFromRole(role, m)">&times;</span>
+                      </span>
+                    </template>
+                    <select class="role-add-select" x-show="availableForRole(role).length"
+                            @change="addMemberToRole(role, $event.target.value); $event.target.value = ''">
+                      <option value="">+ add</option>
+                      <template x-for="m in availableForRole(role)" :key="m.name">
+                        <option :value="m.name" x-text="m.name"></option>
+                      </template>
+                    </select>
+                  </div>
+                </div>
+              </template>
+              <div style="display:flex;gap:8px;margin-top:12px">
+                <button class="btn-primary" @click="saveSong()">Update song</button>
+                <button class="btn-ghost" @click="cancelSongForm()">Cancel</button>
+              </div>
+            </div>
+          </template>
+          <template x-if="editingIndex !== i">
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title" x-text="song.title"></div>
+                  <div class="card-subtitle" x-text="song.artist"></div>
+                </div>
+                <div style="display:flex;gap:6px">
+                  <button class="btn-small btn-ghost" @click="showSongForm(i)">Edit</button>
+                  <button class="btn-small btn-danger" @click="if(confirm('Delete \u201c' + song.title + '\u201d?')) deleteSong(i)">Delete</button>
+                </div>
+              </div>
+              <template x-for="role in ROLES" :key="role">
+                <div class="role-section" x-show="(song.members[role] || []).length">
+                  <div class="role-label" x-text="ROLE_LABELS[role]"></div>
+                  <div class="role-members">
+                    <template x-for="m in (song.members[role] || [])" :key="m">
+                      <span class="member-tag" x-text="m"></span>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+      </template>
+    </div>
+
+    <!-- SETLIST PANEL -->
+    <div x-show="tab === 'setlist'">
+      <div class="section-title">Select songs for this rehearsal set</div>
+      <div class="empty-state" x-show="!songs.length">Add some songs first.</div>
+      <template x-for="(song, i) in songs" :key="i">
+        <div class="card setlist-song">
+          <input type="checkbox" :checked="!excluded.includes(i)" @change="toggleExcluded(i)">
+          <div class="setlist-song-info">
+            <div class="setlist-song-title" x-text="song.title"></div>
+            <div class="setlist-song-artist" x-text="song.artist"></div>
+            <div class="setlist-song-members" x-text="allMembersList(song).join(', ')"></div>
+          </div>
+        </div>
+      </template>
+      <button class="btn-calculate" @click="calculate()" x-show="songs.length">Calculate optimal order</button>
+
+      <div style="margin-top:24px">
+        <template x-if="results && results.error">
+          <div class="empty-state" x-text="results.error"></div>
+        </template>
+        <template x-if="results && !results.error">
+          <div>
+            <template x-for="(entry, i) in results.entries" :key="i">
+              <div class="result-card"
+                   :style="'border-left-color:' + (entry.shared.length ? 'var(--red)' : 'var(--green)')">
+                <div class="result-number"
+                     :style="'background:' + (entry.shared.length ? 'var(--red)' : 'var(--green)')"
+                     x-text="i + 1"></div>
+                <div class="result-info">
+                  <div class="result-title" x-text="entry.song.title"></div>
+                  <div class="result-artist" x-text="entry.song.artist"></div>
+                  <div class="result-band" x-text="allMembersList(entry.song).join(', ')"></div>
+                  <div :class="entry.shared.length ? 'result-overlap overlap-warn' : 'result-overlap overlap-ok'"
+                       x-text="overlapLabel(entry)"></div>
+                </div>
+              </div>
+            </template>
+            <div class="loop-back">Loop back to: <span x-text="results.loopBackTitle"></span></div>
+            <div class="result-summary">
+              <div class="total" x-text="results.totalCost"></div>
+              <div class="label">total weighted overlap cost across <span x-text="results.songCount"></span> songs</div>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
-  `;
 
-  area.querySelectorAll(".role-add-select").forEach(sel => {
-    sel.addEventListener("change", () => {
-      if (!sel.value) return;
-      addMemberToForm(sel.dataset.role, sel.value);
-    });
-  });
+  </div>
 
-  area.querySelectorAll(".member-tag .remove").forEach(btn => {
-    btn.addEventListener("click", () => {
-      removeMemberFromForm(btn.dataset.role, btn.dataset.name);
-    });
-  });
 
-  document.getElementById("save-song-btn").addEventListener("click", saveSong);
-  document.getElementById("cancel-song-btn").addEventListener("click", () => {
-    area.innerHTML = "";
-    editingIndex = -1;
-  });
-}
+</div>
 
-function getFormSong() {
-  const title = document.getElementById("song-title").value.trim();
-  const artist = document.getElementById("song-artist").value.trim();
-  const members = {};
-  for (const role of ROLES) {
-    members[role] = [];
-    const container = document.getElementById("role-" + role);
-    container.querySelectorAll(".member-tag").forEach(tag => {
-      const name = tag.childNodes[0].textContent.trim();
-      members[role].push(name);
-    });
-  }
-  return { title, artist, members };
-}
-
-function addMemberToForm(role, name) {
-  const current = getFormSong();
-  current.members[role].push(name);
-  rebuildFormRoles(current);
-}
-
-function removeMemberFromForm(role, name) {
-  const current = getFormSong();
-  current.members[role] = current.members[role].filter(m => m !== name);
-  rebuildFormRoles(current);
-}
-
-function rebuildFormRoles(song) {
-  const musicians = getMusiciansDB();
-  const allAssigned = new Set();
-  for (const role of ROLES)
-    for (const m of song.members[role]) allAssigned.add(m);
-
-  for (const role of ROLES) {
-    const assigned = song.members[role];
-    const available = musicians.filter(m => !allAssigned.has(m));
-    const container = document.getElementById("role-" + role);
-    container.innerHTML = `
-      ${assigned.map(m => `<span class="member-tag">${esc(m)}<span class="remove" data-role="${role}" data-name="${esc(m)}">&times;</span></span>`).join("")}
-      ${available.length ? `<select class="role-add-select" data-role="${role}">
-        <option value="">+ add</option>
-        ${available.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join("")}
-      </select>` : ""}
-    `;
-
-    container.querySelectorAll(".role-add-select").forEach(sel => {
-      sel.addEventListener("change", () => {
-        if (!sel.value) return;
-        addMemberToForm(sel.dataset.role, sel.value);
-      });
-    });
-
-    container.querySelectorAll(".member-tag .remove").forEach(btn => {
-      btn.addEventListener("click", () => {
-        removeMemberFromForm(btn.dataset.role, btn.dataset.name);
-      });
-    });
-  }
-}
-
-function saveSong() {
-  const song = getFormSong();
-  if (!song.title) return;
-  const songs = getSongsDB();
-  if (editingIndex >= 0) {
-    songs[editingIndex] = song;
-  } else {
-    songs.push(song);
-  }
-  saveSongs(songs);
-  document.getElementById("song-form-area").innerHTML = "";
-  editingIndex = -1;
-  renderSongs();
-}
-
-function deleteSong(idx) {
-  const songs = getSongsDB();
-  songs.splice(idx, 1);
-  saveSongs(songs);
-  renderSongs();
-}
-
-// ── Setlist panel ────────────────────────────────────────────────────────
-
-function renderSetlist() {
-  const songs = getSongsDB();
-  const excluded = load("excluded", []);
-  const container = document.getElementById("setlist-songs");
-
-  if (!songs.length) {
-    container.innerHTML = '<div class="empty-state">Add some songs first.</div>';
-    return;
-  }
-
-  container.innerHTML = songs.map((s, i) => {
-    const members = allMembers(s);
-    const checked = !excluded.includes(i);
-    return `<div class="card setlist-song">
-      <input type="checkbox" data-idx="${i}" ${checked ? "checked" : ""}>
-      <div class="setlist-song-info">
-        <div class="setlist-song-title">${esc(s.title)}</div>
-        <div class="setlist-song-artist">${esc(s.artist)}</div>
-        <div class="setlist-song-members">${[...members].join(", ")}</div>
-      </div>
-    </div>`;
-  }).join("");
-
-  container.querySelectorAll("input[type=checkbox]").forEach(cb => {
-    cb.addEventListener("change", () => {
-      const idx = parseInt(cb.dataset.idx);
-      let exc = load("excluded", []);
-      if (cb.checked) {
-        exc = exc.filter(x => x !== idx);
-      } else {
-        if (!exc.includes(idx)) exc.push(idx);
-      }
-      save("excluded", exc);
-    });
-  });
-}
-
-document.getElementById("calculate-btn").addEventListener("click", calculate);
-
-// ── TSP Engine ───────────────────────────────────────────────────────────
-
-function allMembers(song) {
-  const set = new Set();
-  for (const arr of Object.values(song.members))
-    for (const m of arr) set.add(m);
-  return set;
-}
-
-function overlapCount(a, b) {
-  const sa = allMembers(a);
-  const sb = allMembers(b);
-  let c = 0;
-  for (const m of sa) if (sb.has(m)) c++;
-  return c;
-}
-
-function sharedNames(a, b) {
-  const sa = allMembers(a);
-  const sb = allMembers(b);
-  const out = [];
-  for (const m of sa) if (sb.has(m)) out.push(m);
-  return out;
-}
-
-function buildDist(songs) {
-  const n = songs.length;
-  const d = Array.from({ length: n }, () => new Array(n).fill(0));
-  for (let i = 0; i < n; i++)
-    for (let j = i + 1; j < n; j++) {
-      const v = overlapCount(songs[i], songs[j]);
-      d[i][j] = v; d[j][i] = v;
-    }
-  return d;
-}
-
-function heldKarp(dist) {
-  const n = dist.length;
-  if (n === 0) return { cost: 0, path: [] };
-  if (n === 1) return { cost: 0, path: [0] };
-  const FULL = (1 << n) - 1;
-  const dp = Array.from({ length: 1 << n }, () => new Array(n).fill(Infinity));
-  const parent = Array.from({ length: 1 << n }, () => new Array(n).fill(-1));
-  dp[1][0] = 0;
-
-  for (let mask = 1; mask <= FULL; mask++) {
-    for (let u = 0; u < n; u++) {
-      if (dp[mask][u] === Infinity) continue;
-      if (!(mask & (1 << u))) continue;
-      for (let v = 0; v < n; v++) {
-        if (mask & (1 << v)) continue;
-        const next = mask | (1 << v);
-        const cost = dp[mask][u] + dist[u][v];
-        if (cost < dp[next][v]) {
-          dp[next][v] = cost;
-          parent[next][v] = u;
-        }
-      }
-    }
-  }
-
-  let bestCost = Infinity, lastNode = -1;
-  for (let u = 1; u < n; u++) {
-    const cost = dp[FULL][u] + dist[u][0];
-    if (cost < bestCost) { bestCost = cost; lastNode = u; }
-  }
-
-  const path = [];
-  let mask = FULL, cur = lastNode;
-  while (cur !== -1) {
-    path.push(cur);
-    const prev = parent[mask][cur];
-    mask ^= 1 << cur;
-    cur = prev;
-  }
-  path.reverse();
-  return { cost: bestCost, path };
-}
-
-function calculate() {
-  const allSongs = getSongsDB();
-  const excluded = load("excluded", []);
-  const included = allSongs.filter((_, i) => !excluded.includes(i));
-  const area = document.getElementById("results-area");
-
-  if (included.length < 2) {
-    area.innerHTML = '<div class="empty-state">Need at least 2 songs to calculate.</div>';
-    return;
-  }
-
-  const dist = buildDist(included);
-  const { cost, path } = heldKarp(dist);
-
-  let html = "";
-  for (let i = 0; i < path.length; i++) {
-    const song = included[path[i]];
-    const next = included[path[(i + 1) % path.length]];
-    const shared = sharedNames(song, next);
-    const borderColor = shared.length ? "var(--red)" : "var(--green)";
-
-    html += `<div class="result-card" style="border-left-color:${borderColor}">
-      <div class="result-number" style="background:${borderColor}">${i + 1}</div>
-      <div class="result-info">
-        <div class="result-title">${esc(song.title)}</div>
-        <div class="result-artist">${esc(song.artist)}</div>
-        <div class="result-band">${[...allMembers(song)].join(", ")}</div>
-        <div class="result-overlap ${shared.length ? "overlap-warn" : "overlap-ok"}">
-          ${shared.length
-            ? `Overlap with next (${shared.length}): ${shared.join(", ")}`
-            : "No overlap with next song"}
-        </div>
-      </div>
-    </div>`;
-  }
-
-  html += `<div class="loop-back">Loop back to: ${esc(included[path[0]].title)}</div>`;
-  html += `<div class="result-summary">
-    <div class="total">${cost}</div>
-    <div class="label">total musician overlaps across ${path.length} songs</div>
-  </div>`;
-
-  area.innerHTML = html;
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────────
-
-function esc(str) {
-  const d = document.createElement("div");
-  d.textContent = str;
-  return d.innerHTML;
-}
-
-function render() {
-  renderMusicians();
-  renderSongs();
-  renderSetlist();
-}
-
-// ── Boot ─────────────────────────────────────────────────────────────────
-
-initDB();
-render();
-</script>
 </body>
 </html>
