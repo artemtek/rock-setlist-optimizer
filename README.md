@@ -10,22 +10,22 @@ Uses the **Held-Karp algorithm** (exact dynamic programming on bitmasks) — gua
 
 ## Features
 
-- **Musician roster** — add/remove musicians; removal cascades across all songs
-- **Song management** — create songs with role-based assignments (vocals, guitar, bass, drums, keys, aux/perc)
+- **Musician roster** — add/remove musicians with weighted priorities; removal cascades across all songs
+- **Song management** — create songs with role-based assignments (vocals, guitar, bass, drums, keys, aux/perc); inline editing
+- **Weighted overlap** — assign weights to musicians so the algorithm tries harder to avoid back-to-back songs for high-weight players
 - **Partial sets** — checkbox to include/exclude songs for a given rehearsal
 - **Optimal ordering** — one-click calculation of the best circular setlist
 - **Persistent** — all data stored in localStorage, no backend needed
+- **Data migration** — automatically upgrades older localStorage data to the current format
 
 ## Usage
 
-Open `index.html` in a browser. No build step, no dependencies.
-
-The CLI version is also available:
-
-```bash
-node code.js
-```
+Static HTML/JS app — open `index.html` in a browser. No build step, no server, no dependencies.
 
 ## License
 
 [GPL-2.0](LICENSE)
+
+## Author
+
+[artemnih](https://github.com/artemtek)
