@@ -24,10 +24,15 @@ function app() {
     musicians: [],
     songs: [],
     excluded: [],
+    absent: [],
     newMusician: "",
     editingIndex: -1,
     songForm: null,
     results: null,
+    reverseMode: false,
+    showImportModal: false,
+    importText: "",
+    importError: "",
 
     // ── Lifecycle ──────────────────────────────────────────────────────
 
@@ -39,6 +44,8 @@ function app() {
             for (const m of arr) names.add(m);
         this.musicians = [...names].sort().map(name => ({ name, weight: 1 }));
         this.songs = JSON.parse(JSON.stringify(DEFAULT_SONGS));
+        this.absent = [];
+        this.reverseMode = false;
         this.persist();
         localStorage.setItem("rock_init", "1");
       } else {
@@ -56,12 +63,16 @@ function app() {
       }
       this.songs = this._read("songs", []);
       this.excluded = this._read("excluded", []);
+      this.absent = this._read("absent", []);
+      this.reverseMode = this._read("reverseMode", false);
     },
 
     persist() {
       localStorage.setItem("musicians", JSON.stringify(this.musicians));
       localStorage.setItem("songs", JSON.stringify(this.songs));
       localStorage.setItem("excluded", JSON.stringify(this.excluded));
+      localStorage.setItem("absent", JSON.stringify(this.absent));
+      localStorage.setItem("reverseMode", JSON.stringify(this.reverseMode));
     },
 
     _read(key, fallback) {
@@ -72,6 +83,89 @@ function app() {
     _saveMusicians() { localStorage.setItem("musicians", JSON.stringify(this.musicians)); },
     _saveSongs() { localStorage.setItem("songs", JSON.stringify(this.songs)); },
     _saveExcluded() { localStorage.setItem("excluded", JSON.stringify(this.excluded)); },
+    _saveAbsent() { localStorage.setItem("absent", JSON.stringify(this.absent)); },
+    _saveReverseMode() { localStorage.setItem("reverseMode", JSON.stringify(this.reverseMode)); },
+
+    // ── Import / Export ────────────────────────────────────────────────
+
+    exportData() {
+      const data = {
+        musicians: this.musicians,
+        songs: this.songs,
+        excluded: this.excluded,
+        absent: this.absent,
+        reverseMode: this.reverseMode,
+      };
+      return JSON.stringify(data, null, 2);
+    },
+
+    exportDownload() {
+      const blob = new Blob([this.exportData()], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "rock-setlist.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+
+    async exportCopy() {
+      try {
+        await navigator.clipboard.writeText(this.exportData());
+        alert("Copied to clipboard!");
+      } catch {
+        const ta = document.createElement("textarea");
+        ta.value = this.exportData();
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        alert("Copied to clipboard!");
+      }
+    },
+
+    openImportModal() {
+      this.importText = "";
+      this.importError = "";
+      this.showImportModal = true;
+    },
+
+    importFromFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.importText = reader.result;
+        this._tryImport();
+      };
+      reader.readAsText(file);
+      event.target.value = "";
+    },
+
+    importFromPaste() {
+      this._tryImport();
+    },
+
+    _tryImport() {
+      try {
+        const data = JSON.parse(this.importText);
+        if (!Array.isArray(data.musicians) || !Array.isArray(data.songs)) {
+          this.importError = "Invalid format: must contain musicians and songs arrays.";
+          return;
+        }
+        if (!confirm("This will replace all current data. Continue?")) return;
+        this.musicians = data.musicians;
+        this.songs = data.songs;
+        this.excluded = data.excluded || [];
+        this.absent = data.absent || [];
+        this.reverseMode = data.reverseMode || false;
+        this.persist();
+        this.results = null;
+        this.showImportModal = false;
+      } catch (e) {
+        this.importError = "Invalid JSON: " + e.message;
+      }
+    },
 
     // ── Musicians ─────────────────────────────────────────────────────
 
@@ -100,11 +194,27 @@ function app() {
         msg += `\n\nWill be removed from ${affected.length} song(s): ${affected.map(s => s.title).join(', ')}`;
       if (!confirm(msg)) return;
       this.musicians = this.musicians.filter(m => m.name !== name);
+      this.absent = this.absent.filter(m => m !== name);
       for (const s of this.songs)
         for (const role of this.ROLES)
           s.members[role] = (s.members[role] || []).filter(m => m !== name);
       this._saveMusicians();
+      this._saveAbsent();
       this._saveSongs();
+    },
+
+    toggleAbsent(name) {
+      const pos = this.absent.indexOf(name);
+      if (pos >= 0) {
+        this.absent.splice(pos, 1);
+      } else {
+        this.absent.push(name);
+      }
+      this._saveAbsent();
+    },
+
+    isAbsent(name) {
+      return this.absent.includes(name);
     },
 
     // ── Songs ─────────────────────────────────────────────────────────
@@ -176,12 +286,20 @@ function app() {
       this._saveExcluded();
     },
 
+    toggleReverseMode() {
+      this.reverseMode = !this.reverseMode;
+      this._saveReverseMode();
+    },
+
     // ── Helpers ───────────────────────────────────────────────────────
 
-    allMembers(song) {
+    allMembers(song, excludeAbsent) {
       const set = new Set();
       for (const arr of Object.values(song.members))
-        for (const m of arr) set.add(m);
+        for (const m of arr) {
+          if (excludeAbsent && this.absent.includes(m)) continue;
+          set.add(m);
+        }
       return set;
     },
 
@@ -194,7 +312,7 @@ function app() {
       const names = entry.shared
         .map(s => s.weight > 1 ? s.name + " \u00d7" + s.weight : s.name)
         .join(", ");
-      return "Overlap with next (cost " + entry.transCost + "): " + names;
+      return "Shared with next (" + entry.transCost + "): " + names;
     },
 
     // ── TSP Engine ───────────────────────────────────────────────────
@@ -206,16 +324,16 @@ function app() {
     },
 
     overlapCost(a, b, weights) {
-      const sa = this.allMembers(a);
-      const sb = this.allMembers(b);
+      const sa = this.allMembers(a, true);
+      const sb = this.allMembers(b, true);
       let c = 0;
       for (const m of sa) if (sb.has(m)) c += (weights[m] || 1);
       return c;
     },
 
     sharedInfo(a, b, weights) {
-      const sa = this.allMembers(a);
-      const sb = this.allMembers(b);
+      const sa = this.allMembers(a, true);
+      const sb = this.allMembers(b, true);
       const shared = [];
       let cost = 0;
       for (const m of sa) {
@@ -291,22 +409,38 @@ function app() {
       }
 
       const dist = this.buildDist(included);
-      const { cost, path } = this.heldKarp(dist);
+
+      let solveDist = dist;
+      if (this.reverseMode) {
+        const n = dist.length;
+        let maxVal = 0;
+        for (let i = 0; i < n; i++)
+          for (let j = 0; j < n; j++)
+            if (dist[i][j] > maxVal) maxVal = dist[i][j];
+        solveDist = Array.from({ length: n }, (_, i) =>
+          Array.from({ length: n }, (_, j) => i === j ? 0 : maxVal - dist[i][j])
+        );
+      }
+
+      const { path } = this.heldKarp(solveDist);
       const weights = this.getWeightMap();
 
+      let totalCost = 0;
       const entries = [];
       for (let i = 0; i < path.length; i++) {
         const song = included[path[i]];
         const next = included[path[(i + 1) % path.length]];
         const { shared, cost: transCost } = this.sharedInfo(song, next, weights);
         entries.push({ song, shared, transCost });
+        totalCost += transCost;
       }
 
       this.results = {
         entries,
         loopBackTitle: included[path[0]].title,
-        totalCost: cost,
-        songCount: path.length
+        totalCost,
+        songCount: path.length,
+        reverseMode: this.reverseMode
       };
     }
   };

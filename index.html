@@ -34,11 +34,13 @@
       <div class="section-title">Roster (<span x-text="musicians.length"></span>)</div>
       <div class="empty-state" x-show="!musicians.length">No musicians yet. Add one above.</div>
       <table class="roster-table" x-show="musicians.length">
-        <thead><tr><th>Name</th><th class="col-weight">Weight</th><th></th></tr></thead>
+        <thead><tr><th>Name</th><th class="col-weight">Weight</th><th class="col-absent">Absent</th><th></th></tr></thead>
         <tbody>
           <template x-for="m in musicians" :key="m.name">
-            <tr>
-              <td x-text="m.name"></td>
+            <tr :class="isAbsent(m.name) && 'row-absent'">
+              <td>
+                <span x-text="m.name"></span>
+              </td>
               <td class="col-weight">
                 <div class="weight-stepper">
                   <button class="weight-btn" @click="updateWeight(m.name, m.weight - 1)" :disabled="m.weight <= 1">&minus;</button>
@@ -47,11 +49,42 @@
                   <button class="weight-btn" @click="updateWeight(m.name, m.weight + 1)" :disabled="m.weight >= 99">+</button>
                 </div>
               </td>
+              <td class="col-absent">
+                <input type="checkbox" class="absent-check" :checked="isAbsent(m.name)" @change="toggleAbsent(m.name)">
+              </td>
               <td><button class="row-remove" @click="removeMusician(m.name)" title="Remove">&times;</button></td>
             </tr>
           </template>
         </tbody>
       </table>
+
+      <div class="io-row">
+        <button class="btn-ghost btn-small" @click="exportDownload()">Export file</button>
+        <button class="btn-ghost btn-small" @click="exportCopy()">Copy JSON</button>
+        <button class="btn-ghost btn-small" @click="openImportModal()">Import</button>
+      </div>
+
+      <!-- Import Modal -->
+      <template x-if="showImportModal">
+        <div class="modal-overlay" @click.self="showImportModal = false">
+          <div class="modal-box">
+            <div class="modal-title">Import data</div>
+            <div style="margin-bottom:12px">
+              <label class="btn-primary btn-small" style="cursor:pointer;display:inline-block">
+                Choose file
+                <input type="file" accept=".json,application/json" style="display:none" @change="importFromFile($event)">
+              </label>
+            </div>
+            <div class="modal-divider">or paste JSON below</div>
+            <textarea class="import-textarea" x-model="importText" placeholder='{"musicians":[...], "songs":[...]}'></textarea>
+            <div class="import-error" x-show="importError" x-text="importError"></div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+              <button class="btn-primary" @click="importFromPaste()" :disabled="!importText.trim()">Import</button>
+              <button class="btn-ghost" @click="showImportModal = false">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </template>
     </div>
 
     <!-- SONGS PANEL -->
@@ -168,7 +201,18 @@
           </div>
         </div>
       </template>
-      <button class="btn-calculate" @click="calculate()" x-show="songs.length">Calculate optimal order</button>
+      <div class="mode-toggle" x-show="songs.length">
+        <label class="toggle-label">
+          <input type="checkbox" :checked="reverseMode" @change="toggleReverseMode()">
+          <span class="toggle-text">Reverse priority</span>
+          <span class="toggle-hint" x-text="reverseMode ? 'Maximize shared musicians between songs' : 'Minimize shared musicians between songs'"></span>
+        </label>
+      </div>
+      <div class="absent-notice" x-show="absent.length">
+        <span x-text="absent.length"></span> musician(s) marked absent
+      </div>
+      <button class="btn-calculate" @click="calculate()" x-show="songs.length"
+              x-text="reverseMode ? 'Calculate (max overlap)' : 'Calculate optimal order'"></button>
 
       <div style="margin-top:24px">
         <template x-if="results && results.error">
@@ -178,15 +222,15 @@
           <div>
             <template x-for="(entry, i) in results.entries" :key="i">
               <div class="result-card"
-                   :style="'border-left-color:' + (entry.shared.length ? 'var(--red)' : 'var(--green)')">
+                   :style="'border-left-color:' + (results.reverseMode ? (entry.shared.length ? 'var(--green)' : 'var(--red)') : (entry.shared.length ? 'var(--red)' : 'var(--green)'))">
                 <div class="result-number"
-                     :style="'background:' + (entry.shared.length ? 'var(--red)' : 'var(--green)')"
+                     :style="'background:' + (results.reverseMode ? (entry.shared.length ? 'var(--green)' : 'var(--red)') : (entry.shared.length ? 'var(--red)' : 'var(--green)'))"
                      x-text="i + 1"></div>
                 <div class="result-info">
                   <div class="result-title" x-text="entry.song.title"></div>
                   <div class="result-artist" x-text="entry.song.artist"></div>
                   <div class="result-band" x-text="allMembersList(entry.song).join(', ')"></div>
-                  <div :class="entry.shared.length ? 'result-overlap overlap-warn' : 'result-overlap overlap-ok'"
+                  <div :class="results.reverseMode ? (entry.shared.length ? 'result-overlap overlap-ok' : 'result-overlap overlap-warn') : (entry.shared.length ? 'result-overlap overlap-warn' : 'result-overlap overlap-ok')"
                        x-text="overlapLabel(entry)"></div>
                 </div>
               </div>
@@ -194,7 +238,7 @@
             <div class="loop-back">Loop back to: <span x-text="results.loopBackTitle"></span></div>
             <div class="result-summary">
               <div class="total" x-text="results.totalCost"></div>
-              <div class="label">total weighted overlap cost across <span x-text="results.songCount"></span> songs</div>
+              <div class="label" x-text="results.reverseMode ? 'total shared overlap across ' + results.songCount + ' songs (maximized)' : 'total weighted overlap cost across ' + results.songCount + ' songs'"></div>
             </div>
           </div>
         </template>

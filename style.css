@@ -395,6 +395,146 @@ button {
   margin-bottom: 12px;
 }
 
+.col-absent {
+  width: 60px;
+  text-align: center;
+}
+
+.absent-check {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent2);
+  cursor: pointer;
+}
+
+.row-absent td {
+  opacity: 0.45;
+}
+
+.row-absent td .absent-check {
+  opacity: 1;
+}
+
+.io-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.modal-divider {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 13px;
+  margin: 12px 0;
+  position: relative;
+}
+
+.modal-divider::before,
+.modal-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 35%;
+  height: 1px;
+  background: var(--border);
+}
+
+.modal-divider::before { left: 0; }
+.modal-divider::after { right: 0; }
+
+.import-textarea {
+  width: 100%;
+  min-height: 120px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 10px;
+  font-size: 13px;
+  font-family: monospace;
+  resize: vertical;
+}
+
+.import-textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.import-error {
+  color: var(--red);
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.mode-toggle {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  flex-wrap: wrap;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent2);
+  cursor: pointer;
+}
+
+.toggle-text {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.toggle-hint {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.absent-notice {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--accent2);
+  padding: 6px 12px;
+  background: rgba(249, 160, 63, 0.1);
+  border-radius: var(--radius);
+}
+
 .confirm-overlay {
   position: fixed;
   inset: 0;
